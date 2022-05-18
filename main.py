@@ -38,6 +38,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--retrain", default=False, action="store_true")
 parser.add_argument("--batch_size", type=int, required=False, default=8)
 parser.add_argument("--epochs", type=int, required=False, default=200)
+parser.add_argument("--model_name", type=str, required=True)
 parser.add_argument("--weights", type=str, required=False, default=None)
 parser.add_argument("--current_epoch", type=int, required=True,
                     help='epoch number of latest weights file (0 if training from the start)')
@@ -47,6 +48,7 @@ args = parser.parse_args()
 retrain = args.retrain
 batch_size = args.batch_size
 epochs = args.epochs
+model_name = args.model_name
 weights = args.weights
 current_epoch = args.current_epoch
 train_file = args.train_file
@@ -112,9 +114,9 @@ if args.multigpu:
     strategy = tf.distribute.MirroredStrategy(devices=devices_list)
     print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
     with strategy.scope():
-        model = create_model(input_shape)
+        model = create_model(input_shape,model_name)
 else:
-    model = create_model(input_shape)
+    model = create_model(input_shape,model_name)
 
 optimizer = get_optimizer(current_epoch)
 

@@ -13,6 +13,7 @@ from tensorflow.keras.utils import get_source_inputs, get_file
 from tensorflow.keras.regularizers import l2
 from keras_applications.imagenet_utils import _obtain_input_shape
 import math
+from .models import load_custom_model
 
 BASE_WEIGHTS_PATH = (
     'https://github.com/Callidior/keras-applications/'
@@ -503,17 +504,17 @@ def yolo4_predictions(feature_maps, feature_channel_nums, num_anchors, num_class
     return y1, y2, y3
 
 
-def create_model(inputs):
+def create_model(inputs, model_name):
     inputs = Input(shape=inputs, name='image_input')
-    efficientnet, feature_map_info = get_efficientnet_backbone_info(inputs)
-    print('backbone layers number: {}'.format(len(efficientnet.layers)))
-    f1 = efficientnet.get_layer('top_activation').output
+    net, feature_map_info = load_custom_model(inputs, model_name)
+    print('backbone layers number: {}'.format(len(net.layers)))
+    f1 = net.get_layer(feature_map_info['f1_name']).output
     f1_channel_num = feature_map_info['f1_channel_num']
 
-    f2 = efficientnet.get_layer('block6a_expand_activation').output
+    f2 = net.get_layer(feature_map_info['f2_name']).output
     f2_channel_num = feature_map_info['f2_channel_num']
 
-    f3 = efficientnet.get_layer('block4a_expand_activation').output
+    f3 = net.get_layer(feature_map_info['f3_name']).output
     f3_channel_num = feature_map_info['f3_channel_num']
 
     y1, y2, y3 = yolo4_predictions((f1, f2, f3), (f1_channel_num, f2_channel_num, f3_channel_num), 3, 1)
