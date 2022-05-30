@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Lambda, Input
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, LearningRateScheduler, \
-    EarlyStopping, LambdaCallback
+    EarlyStopping, LambdaCallback, CSVLogger
 from model.EfficientNet import create_model
 from stuffs.utils import get_optimizer, get_anchors, get_dataset, get_classes, add_metrics
 from loss.loss import yolo3_loss
@@ -79,18 +79,23 @@ log_dir = './logs/'
 
 logging = TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=False, write_grads=False, write_images=False,
                       update_freq='batch')
+csv_logger = CSVLogger(
+    filename=f'{log_dir}/{model_name}.csv',
+    separator=',',
+    append=True
+)
 checkpoint = ModelCheckpoint(os.path.join(log_dir,
                                           'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}-previous_epoch' + str(
                                               current_epoch) + '.h5'),
                              monitor='val_loss',
                              verbose=1,
                              save_weights_only=False,
-                             save_best_only=True,
+                             save_best_only=False,
                              period=1)
 
 # reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, verbose=1, cooldown=0, min_lr=1e-10)
-early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
-callbacks = [logging, checkpoint, early_stopping]
+# early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
+callbacks = [logging, checkpoint, csv_logger]
 shuffle_callback = DatasetShuffleCallBack(dataset)
 callbacks.append(shuffle_callback)
 
