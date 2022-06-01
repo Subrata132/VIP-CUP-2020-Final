@@ -29,6 +29,12 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
+
+# config = tf.compat.v1.ConfigProto()
+# config.gpu_options.per_process_gpu_memory_fraction = 0.75
+# config.gpu_options.allow_growth = True
+# session = tf.compat.v1.InteractiveSession(config=config)
+
 # =====================================================================================#
 
 # Get attributes from cmd
@@ -85,8 +91,7 @@ csv_logger = CSVLogger(
     append=True
 )
 checkpoint = ModelCheckpoint(os.path.join(log_dir,
-                                          'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}-previous_epoch' + str(
-                                              current_epoch) + '.h5'),
+                                          str(model_name)+'_'+'ep_{epoch:03d}_' + str(current_epoch) + '.h5'),
                              monitor='val_loss',
                              verbose=1,
                              save_weights_only=False,
@@ -160,6 +165,7 @@ if retrain == True:
                   callbacks=callbacks,
                   max_queue_size=10)
     else:
+        print('Loading Model : ', weights)
         model.load_weights(weights, by_name=True)
         model.fit(data_generator(dataset[:num_train], batch_size, image_shape, anchors, num_classes,
                                  multi_anchor_assign=False),
